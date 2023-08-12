@@ -11,7 +11,7 @@ class Downloader(yt_dlp.YoutubeDL):
 
     def __init__(self, download_type: DownloadType):
         options = {
-            'format': download_type,
+            'format': download_type.value,
             'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
             'restrictfilenames': True,
             'noplaylist': True,
