@@ -1,5 +1,5 @@
 import disnake
-from voice.media_info import MediaInfo
+from downloads.media_info import MediaInfo
 
 
 class Song:

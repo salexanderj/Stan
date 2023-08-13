@@ -17,4 +17,5 @@ class Stan(commands.Bot):
 
 
 stan = Stan()
-stan.load_extension("ext.radio")
+stan.load_extension('ext.radio')
+stan.load_extension('ext.ripper')

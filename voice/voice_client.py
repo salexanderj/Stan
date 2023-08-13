@@ -5,11 +5,11 @@ from queue import Queue
 from typing import Optional
 
 import utils
-from voice.downloader import Downloader
-from voice.download_type import DownloadType
+from downloads.downloader import Downloader
+from downloads.download_type import DownloadType
 from voice.ffmpeg_options import get_ffmpeg_options
 from voice.song import Song
-from voice.media_info import MediaInfo
+from downloads.media_info import MediaInfo
 
 
 class StanVoiceClient(disnake.VoiceClient):
