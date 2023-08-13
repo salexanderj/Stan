@@ -19,11 +19,10 @@ class Ripper(commands.Cog):
         description="Stan will try to rip an audio file from the specified url.",
         dm_permission=True
     )
-    async def rip_audio(self,
-                        inter: disnake.ApplicationCommandInteraction,
-                        url: str,
-                        ) -> None:
-
+    async def ripa(self,
+                   inter: disnake.ApplicationCommandInteraction,
+                   url: str,
+                   ) -> None:
         await inter.response.defer()
 
         loop = asyncio.get_event_loop()
