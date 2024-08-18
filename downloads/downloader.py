@@ -24,7 +24,9 @@ class Downloader(yt_dlp.YoutubeDL):
             'verbose': True,
             'no_warnings': True,
             'default_search': 'auto',
-            'cachedir': False
+            'cachedir': False,
+            'username': 'oauth2',
+            'password': ''
         }
 
         super().__init__(options)
