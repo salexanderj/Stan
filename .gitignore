@@ -1,6 +1,8 @@
 # Discord bot token
 token
 
+data.txt
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
