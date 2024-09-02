@@ -1,7 +1,9 @@
 # Discord bot token
 token
 
+# random stuff
 data.txt
+start.sh
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
