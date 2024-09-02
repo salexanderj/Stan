@@ -32,7 +32,7 @@ class StanVoiceClient(disnake.VoiceClient):
         self._announce_channel = text_channel
 
         downloader = self._yt_downloader
-        if validators.url(url) and "youtube" not in url:
+        if validators.url(url) and "youtube" not in url and "youtu.be" not in url:
             downloader = self._other_downloader
         
         print(f"USING {downloader.__class__.__name__.upper()}")
