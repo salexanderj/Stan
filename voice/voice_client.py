@@ -5,7 +5,8 @@ from queue import Queue
 from typing import Optional
 
 import utils
-from downloads.downloader import Downloader
+from downloads.yt_downloader import YTDownloader
+from downloads.other_downloader import OtherDownloader
 from downloads.download_type import DownloadType
 from voice.ffmpeg_options import get_ffmpeg_options
 from voice.song import Song
@@ -17,7 +18,8 @@ class StanVoiceClient(disnake.VoiceClient):
     def __init__(self, client: disnake.Client, channel: disnake.abc.Connectable):
 
         super().__init__(client, channel)
-        self._downloader = Downloader(DownloadType.RADIO)
+        self._yt_downloader = YTDownloader(DownloadType.RADIO)
+        self._other_downloader = OtherDownloader(DownloadType.RADIO)
         self._queue: Queue[Song] = Queue()
         self._current_song: Optional[Song] = None
         self._looping: bool = False
@@ -28,7 +30,9 @@ class StanVoiceClient(disnake.VoiceClient):
 
         self._announce_channel = text_channel
 
-        infos: list[MediaInfo] = await self._downloader.extract_media_info(url)
+        downloader = self._yt_downloader if "youtube" in url else self._other_downloader
+
+        infos: list[MediaInfo] = await downloader.extract_media_info(url)
 
         for info in infos:
             new_song = Song(info, requestor)

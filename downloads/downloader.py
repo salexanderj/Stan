@@ -2,34 +2,24 @@ import yt_dlp
 import asyncio
 from typing import List
 import json
+from abc import ABC, abstractmethod
 
 from downloads.download_type import DownloadType
 from downloads.media_info import MediaInfo
 
 yt_dlp.utils.bug_reports_message = lambda: ''
 
-
-class Downloader(yt_dlp.YoutubeDL):
+class Downloader(yt_dlp.YoutubeDL, ABC):
 
     def __init__(self, download_type: DownloadType):
-        options = {
-            'format': download_type.value,
-            # 'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
-            'outtmpl': '-',
-            'restrictfilenames': True,
-            'noplaylist': True,
-            'nocheckcertificate': True,
-            'ignoreerrors': False,
-            'logtostderr': False,
-            'verbose': True,
-            'no_warnings': True,
-            'default_search': 'auto',
-            'username': 'oauth2',
-            'password': ''
-        }
-
+        
+        options = self.get_options(download_type)
         super().__init__(options)
-
+    
+    @abstractmethod
+    def get_options(self, download_type: DownloadType):
+        pass
+    
     async def extract_media_info(self, url: str) -> List[MediaInfo]:
         loop = asyncio.get_event_loop()
         data = await loop.run_in_executor(None, lambda: self.extract_info(url, download=False))
