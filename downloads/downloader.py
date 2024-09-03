@@ -26,9 +26,6 @@ class Downloader(yt_dlp.YoutubeDL, ABC):
 
         infos = []
 
-        with open("data.txt", "w") as f:
-            json.dump(data, f)
-
         if 'entries' in data:
             for entry in data['entries']:
                 info = MediaInfo(entry['title'],

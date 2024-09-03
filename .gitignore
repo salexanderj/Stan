@@ -1,8 +1,7 @@
 # Discord bot token
 token
 
-# random stuff
-data.txt
+# Environment-specific start script
 start.sh
 
 # Byte-compiled / optimized / DLL files
