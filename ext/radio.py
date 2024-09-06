@@ -32,6 +32,7 @@ class Radio(commands.Cog):
             await inter.delete_original_message()
         except Exception as e:
             await inter.send("I farded.", ephemeral=True)
+            print(e)
 
     @commands.message_command(
         name="Play File(s)",
