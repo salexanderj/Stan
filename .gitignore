@@ -4,6 +4,11 @@ token
 # Environment-specific start script
 start.sh
 
+# Lavalink .jar should be manually sourced
+lavalink/Lavalink.jar
+lavalink/plugins
+lavalink/logs
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

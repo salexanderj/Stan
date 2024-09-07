@@ -1,32 +1,44 @@
 import disnake
 from disnake.ext import commands
-from typing import Optional
+import lavalink
 
 from voice.voice_client import StanVoiceClient
 
+async def create_player(inter: disnake.ApplicationCommandInteraction, should_connect: bool = False) -> lavalink.DefaultPlayer:
+    player = inter.bot.lavalink.player_manager.create(inter.guild.id)
 
-def is_connected_to_voice(member: disnake.Member) -> bool:
-    return member.voice is not None and member.voice.channel is not None
+    voice_client = inter.guild.voice_client
 
+    if not inter.author.voice or not inter.author.voice.channel:
+        if voice_client is not None:
+            raise commands.CommandInvokeError('Join my channel.')
+        raise commands.CommandInvokeError('Join a voicechannel, first.')
 
-def try_get_voice_channel(member: disnake.Member) -> Optional[disnake.VoiceChannel]:
-    if not is_connected_to_voice(member):
-        return None
+    voice_channel = inter.author.voice.channel
 
-    return member.voice.channel
+    if voice_client is None:
+        if not should_connect:
+            raise commands.CommandInvokeError('I\'m not playing music.')
+    
+        permissions = voice_channel.permissions_for(inter.me)
+        
+        if not permissions.connect or not permissions.speak:
+            raise commands.CommandInvokeError('I need the \'CONNECT\' and \'SPEAK\' permissons.')
 
+        if voice_channel.user_limit > 0:
+            if len(voice_channel.members) >= voice_channel.user_limit and not inter.me.guild_permissions.move_members:
+                raise commands.CommandInvokeError('Your voice channel is full.')
 
-def try_get_voice_client(bot: commands.Bot, channel: disnake.VoiceChannel) -> Optional[StanVoiceClient]:
-    vc: StanVoiceClient | disnake.VoiceProtocol = disnake.utils.get(bot.voice_clients, channel=channel)
+        player.store('channel', inter.channel.id)
+        await inter.author.voice.channel.connect(cls=StanVoiceClient) 
+    elif voice_client.channel.id != voice_channel.id:
+        raise commands.CommandInvokeError('You need to be in my voice channel.')
 
-    return vc
+    return player
 
-
-async def ensure_in_channel(bot: commands.Bot, channel: disnake.VoiceChannel) -> StanVoiceClient:
-    vc = try_get_voice_client(bot, channel)
-    if vc is None:
-        vc = await channel.connect(reconnect=False, cls=StanVoiceClient)
-    elif vc.channel is not channel:
-        await vc.move_to(channel)
-
-    return vc
+def attach_track_metadata(track: lavalink.AudioTrack, inter: disnake.ApplicationCommandInteraction) -> lavalink.AudioTrack:
+    data = {
+            'requester_name': inter.author.display_name,
+            'requester_avatar_url': inter.author.display_avatar.url
+            }
+    return lavalink.AudioTrack(track, track.requester, requester_name=inter.author.display_name, requester_avatar_url=inter.author.display_avatar.url)

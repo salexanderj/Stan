@@ -24,16 +24,14 @@ class Stan(commands.Bot):
         if not self._initialized:
             self._initialized = True
 
-            user = self.user
-            avatar_path = "avatar.png"
-            if user is not None and os.path.exists(avatar_path):
-                with open(avatar_path, 'rb') as avatar_file:
-                    avatar_data = avatar_file.read()
-                    await user.edit(username="Stan",
-                                    avatar=avatar_data)
+        await self.set_default_avatar()
+        print("Stan initialized successfully.")
 
-                print("Stan initialized successfully.")
-
-stan = Stan()
-stan.load_extension('ext.radio')
-stan.load_extension('ext.ripper')
+    async def set_default_avatar(self):
+        user = self.user
+        avatar_path = "avatar.png"
+        if user is not None and os.path.exists(avatar_path):
+            with open(avatar_path, 'rb') as avatar_file:
+                avatar_data = avatar_file.read()
+                await user.edit(username="Stan",
+                                avatar=avatar_data)
