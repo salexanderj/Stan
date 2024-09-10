@@ -2,8 +2,6 @@ import disnake
 from disnake.ext import commands
 import lavalink
 from lavalink.events import TrackStartEvent, QueueEndEvent
-from lavalink.errors import ClientError
-from lavalink.filters import LowPass
 from lavalink.server import LoadType
 import re
 
@@ -138,7 +136,7 @@ class Bard(commands.Cog):
     )
     async def loop(self,
                    inter: disnake.ApplicationCommandInteraction
-                   ):
+                   ) -> None:
         player = await create_player(inter, False)
         await inter.response.defer()
 
@@ -150,6 +148,48 @@ class Bard(commands.Cog):
             player.set_loop(0)
             await player.send_embed(inter)
             await inter.send('Looping disabled...', delete_after=4)
+
+    @commands.slash_command(
+            dm_permission=False
+            )
+    async def filter(self,
+                     inter: disnake.ApplicationCommandInteraction
+                     ) -> None:
+        pass
+
+    @filter.sub_command(
+            description="Sets the speed, pitch, and playback rate of the current player."
+            )
+    async def timescale(self,
+                        inter: disnake.ApplicationCommandInteraction,
+                        speed: float = commands.Param(
+                            default=1.0,
+                            le=10.0,
+                            ge=0.1,
+                            description="Speed of playback (preserves pitch.)"),
+                        pitch: float = commands.Param(
+                            default=1.0,
+                            le=10.0,
+                            ge=0.1,
+                            description="Pitch of playback."),
+                        rate: float = commands.Param(
+                            default=1.0,
+                            le=10.0,
+                            ge=0.1,
+                            description="Rate of playback (does not preserve pitch.)")
+                        ) -> None:
+        player = await create_player(inter, False)
+
+        await inter.response.defer()
+
+        filter = lavalink.filters.Timescale(speed=speed, pitch=pitch, rate=rate)
+
+        await player.set_filter(filter)
+
+        message = (f"Applying timescale filter with speed set to {speed}x, "
+                   f"pitch set to {pitch}x, "
+                   f"and rate set to {rate}x...")
+        await inter.send(message, delete_after=8)
 
 
 def setup(bot: Stan) -> None:
