@@ -64,7 +64,11 @@ class Bard(commands.Cog):
     )
     async def play(self,
                    inter: disnake.ApplicationCommandInteraction,
-                   query: str = commands.Param(description="The url to play.")
+                   query: str = commands.Param(description="The url to play."),
+                   deferred_start: bool = commands.Param(
+                       description="Defers playback start until Stan is manually started using '/resume'.",
+                       default=False
+                       )
                    ) -> None:
         player = await create_player(inter, True)
 
@@ -88,11 +92,53 @@ class Bard(commands.Cog):
             track_with_metadata = attach_track_metadata(track, inter)
             player.add(track=track_with_metadata, requester=inter.author.id)
 
-        if not player.is_playing:
+        if not player.is_playing and not deferred_start:
             await player.play()
 
         await player.send_or_update_embed_message(inter)
         await inter.delete_original_response()
+
+    @commands.slash_command(
+        description="Command Stan to pause playback.",
+        dm_permission=False
+    )
+    async def pause(self,
+                    inter: disnake.ApplicationCommandInteraction
+                    ) -> None:
+        player = await create_player(inter, False)
+
+        await inter.response.defer()
+
+        if not player.is_playing:
+            await inter.send("Nothing to pause.", delete_after=4)
+            return
+        if player.paused:
+            await inter.send("Already paused.", delete_after=4)
+            return
+
+        await player.set_pause(True)
+        await inter.send("Pausing...", delete_after=6)
+
+    @commands.slash_command(
+        description="Command Stan to resume playback.",
+        dm_permission=False
+    )
+    async def resume(self,
+                     inter: disnake.ApplicationCommandInteraction
+                     ) -> None:
+        player = await create_player(inter, False)
+
+        await inter.response.defer()
+
+        if not player.paused and player.is_playing:
+            await inter.send("Already playing.", delete_after=4)
+            return
+        elif not player.paused and not player.is_playing:
+            await player.play()
+            await inter.send("Forcing player to play...", delete_after=6)
+            return
+        await player.set_pause(False)
+        await inter.send("Resuming...", delete_after=6)
 
     @commands.slash_command(
         description="Command Stan to skip the current item in queue.",
@@ -190,6 +236,67 @@ class Bard(commands.Cog):
                    f"pitch set to {pitch}x, "
                    f"and rate set to {rate}x...")
         await inter.send(message, delete_after=8)
+
+    @filter.sub_command(
+            description="Applies a distortion effect to the current player."
+            )
+    async def distortion(self,
+                         inter: disnake.ApplicationCommandInteraction,
+                         sin_offset: float = commands.Param(default=0.0),
+                         sin_scale: float = commands.Param(default=1.0),
+                         cos_offset: float = commands.Param(default=0.0),
+                         cos_scale: float = commands.Param(default=1.0),
+                         tan_offset: float = commands.Param(default=0.0),
+                         tan_scale: float = commands.Param(default=1.0),
+                         offset: float = commands.Param(default=0.0),
+                         scale: float = commands.Param(default=1.0)
+                         ) -> None:
+        player = await create_player(inter, False)
+
+        await inter.response.defer()
+
+        filter = lavalink.filters.Distortion(sin_offset,
+                                             sin_scale,
+                                             cos_offset,
+                                             cos_scale,
+                                             tan_offset,
+                                             tan_scale,
+                                             offset,
+                                             scale)
+        await player.set_filter(filter)
+
+        await inter.send("Applying a distortion filter with provided arguments...", delete_after=8)
+
+    @filter.sub_command(
+            description="Phases the audio between the right and left channels in the current player."
+            )
+    async def rotation(self,
+                       inter: disnake.ApplicationCommandInteraction,
+                       frequency: float = commands.Param(default=2.0),
+                       ) -> None:
+        player = await create_player(inter, False)
+
+        await inter.response.defer()
+
+        filter = lavalink.filters.Rotation(frequency)
+        await player.set_filter(filter)
+
+        message = f"Applying a rotation filter with a frequency of {frequency}..."
+        await inter.send(message, delete_after=8)
+
+    @filter.sub_command(
+            description="Clear all filters."
+            )
+    async def clear(self,
+                    inter: disnake.ApplicationCommandInteraction
+                    ) -> None:
+        player = await create_player(inter, False)
+
+        await inter.response.defer()
+
+        await player.clear_filters()
+
+        await inter.send("Clearing all filters...", delete_after=6)
 
 
 def setup(bot: Stan) -> None:
