@@ -1,9 +1,10 @@
 import disnake
-import asyncio
 import lavalink
 from lavalink.errors import ClientError
 
 from config import LAVALINK_PASSWORD
+from voice.player import StanPlayer
+
 
 class StanVoiceClient(disnake.VoiceProtocol):
 
@@ -15,12 +16,11 @@ class StanVoiceClient(disnake.VoiceProtocol):
 
         if not hasattr(self.client, 'lavalink'):
             self.client.lavalink = lavalink.Client(client.user.id, player=StanPlayer)
-            self.client.lavalink.add_node(host = 'localhost',
-                                          port = 2333,
-                                          password = LAVALINK_PASSWORD,
-                                          region = 'us',
-                                          name = 'default-node')
-
+            self.client.lavalink.add_node(host='localhost',
+                                          port=2333,
+                                          password=LAVALINK_PASSWORD,
+                                          region='us',
+                                          name='default-node')
 
     async def on_voice_state_update(self, data) -> None:
         lavalink = self.client.lavalink
@@ -46,15 +46,22 @@ class StanVoiceClient(disnake.VoiceProtocol):
                 }
         await lavalink.voice_update_handler(lavalink_data)
 
-    async def connect(self, *, timeout: float, reconnect: bool, self_deaf: bool = False, self_mute: bool = False) -> None:
+    async def connect(self,
+                      *,
+                      timeout: float,
+                      reconnect: bool,
+                      self_deaf: bool = False,
+                      self_mute: bool = False) -> None:
         lavalink = self.client.lavalink
-        
+
         lavalink.player_manager.create(guild_id=self.channel.guild.id)
-        await self.channel.guild.change_voice_state(channel=self.channel, self_deaf=self_deaf, self_mute=self_mute)
+        await self.channel.guild.change_voice_state(channel=self.channel,
+                                                    self_deaf=self_deaf,
+                                                    self_mute=self_mute)
 
     async def disconnect(self, *, force: bool = False) -> None:
         player = self.client.lavalink.player_manager.get(self.channel.guild.id)
-        
+
         if not force and not player.is_connected:
             return
 
