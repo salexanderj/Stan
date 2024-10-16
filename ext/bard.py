@@ -2,15 +2,15 @@ import disnake
 from disnake.ext import commands
 import lavalink
 from lavalink.events import TrackStartEvent, QueueEndEvent
-from lavalink.server import LoadType
-import re
+import validators
 
 from bot import Stan
-from voice.player import StanPlayer
-from voice.helpers import create_player, attach_track_metadata
 from config import LAVALINK_PASSWORD
-
-url_rx = re.compile(r'https?://(?:www\.)?.+')
+from voice.player import StanPlayer
+from voice.helpers import create_player, attach_track_media_info
+from downloads.media_type import MediaType
+from downloads.yt_downloader import YTDownloader
+from downloads.other_downloader import OtherDownloader
 
 
 class Bard(commands.Cog):
@@ -74,23 +74,22 @@ class Bard(commands.Cog):
 
         await inter.response.defer()
 
-        query = query.strip('<>')
-        if not url_rx.match(query):
-            query = f'ytsearch:{query}'
+        downloader = OtherDownloader(MediaType.AUDIO)
+        if validators.url(query) and 'youtube' not in query and 'youtu.be' not in query:
+            downloader = YTDownloader(MediaType.AUDIO)
 
-        results = await player.node.get_tracks(query)
+        media_infos = await downloader.extract_media_info(query,
+                                                          requester_name=inter.author.display_name,
+                                                          requester_avatar_url=inter.author.display_avatar.url)
+        if len(media_infos) < 1:
+            await inter.send("I couldn't find any tracks for that query.", delete_after=6)
+            return
 
-        if results.load_type == LoadType.EMPTY:
-            return await inter.send('I couldn\'t find any tracks for that query.')
-        elif results.load_type == LoadType.PLAYLIST:
-            tracks = results.tracks
-            for track in tracks:
-                track_with_metadata = attach_track_metadata(track, inter)
-                player.add(track=track_with_metadata, requester=inter.author.id)
-        else:
-            track = results.tracks[0]
-            track_with_metadata = attach_track_metadata(track, inter)
-            player.add(track=track_with_metadata, requester=inter.author.id)
+        for media_info in media_infos:
+            lavalink_result = await player.node.get_tracks(media_info.media_url)
+            track = lavalink_result.tracks[0]
+            track_with_media_info = attach_track_media_info(track, media_info)
+            player.add(track=track_with_media_info, requester=inter.author.id)
 
         if not player.is_playing and not deferred_start:
             await player.play()

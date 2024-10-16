@@ -2,6 +2,7 @@ from enum import Enum
 
 
 class MediaType(Enum):
-    VIDEO = 'b'
-    AUDIO = 'ba'
-    RADIO = 'ba*'
+    VIDEO = 'b*'
+    VIDEO_ONLY = 'b'
+    AUDIO = 'ba*'
+    AUDIO_ONLY = 'ba'

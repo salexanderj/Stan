@@ -4,10 +4,10 @@ from downloads.media_type import MediaType
 
 class OtherDownloader(Downloader):
 
-    def get_options(self, download_type: MediaType):
+    def get_options(self, media_type: MediaType):
 
         options_other = {
-            'format': download_type.value,
+            'format': media_type.value,
             # 'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
             'outtmpl': '-',
             'restrictfilenames': True,

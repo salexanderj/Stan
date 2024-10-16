@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Optional
 
 import utils
+from downloads.media_info import MediaInfo
 
 
 class StanPlayer(lavalink.DefaultPlayer):
@@ -55,19 +56,20 @@ class StanPlayer(lavalink.DefaultPlayer):
         links_field = ''
 
         current = self.current
+        current_media_info: MediaInfo = current.extra['media_info']
         if current is not None:
-            requester_name = current.extra['requester_name']
-            requester_avatar_url = current.extra['requester_avatar_url']
+            requester_name = current_media_info.requester_name
+            requester_avatar_url = current_media_info.requester_avatar_url
             embed.set_author(
                     name=requester_name,
                     icon_url=requester_avatar_url)
 
-            if current.artwork_url:
-                embed.set_thumbnail(current.artwork_url)
+            if current_media_info.thumbnail:
+                embed.set_thumbnail(current_media_info.thumbnail)
 
-            songs_field += f":arrow_forward: {utils.trim(current.title, 25)}\n"
+            songs_field += f":arrow_forward: {utils.trim(current_media_info.title, 25)}\n"
             requesters_field += f"{utils.trim(requester_name, 9)}\n"
-            links_field += f"[{current.isrc or current.source_name}]({current.uri})\n"
+            links_field += f"[{current_media_info.extractor}]({current_media_info.page_url})\n"
 
         tracks = self.queue
         if len(tracks) > 0:
@@ -75,11 +77,12 @@ class StanPlayer(lavalink.DefaultPlayer):
             for idx, i in enumerate(tracks):
                 if count == 25:
                     break
-                requester_name = i.extra['requester_name']
-                requester_avatar_url = i.extra['requester_avatar_url']
-                songs_field += f"{idx + 1}. {utils.trim(i.title, 25)}\n"
+                media_info: MediaInfo = i.extra['media_info']
+                requester_name = media_info.requester_name
+                requester_avatar_url = media_info.requester_avatar_url
+                songs_field += f"{idx + 1}. {utils.trim(media_info.title, 25)}\n"
                 requesters_field += f"{utils.trim(requester_name, 9)}\n"
-                links_field += f"[{i.isrc or i.source_name}]({i.uri})\n"
+                links_field += f"[{media_info.extractor}]({media_info.page_url})\n"
                 count += 1
 
         embed.add_field("Queue", songs_field)

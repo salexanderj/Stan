@@ -3,8 +3,11 @@ from disnake.ext import commands
 import lavalink
 
 from voice.voice_client import StanVoiceClient
+from downloads.media_info import MediaInfo
 
-async def create_player(inter: disnake.ApplicationCommandInteraction, should_connect: bool = False) -> lavalink.DefaultPlayer:
+
+async def create_player(inter: disnake.ApplicationCommandInteraction,
+                        should_connect: bool = False) -> lavalink.DefaultPlayer:
     player = inter.bot.lavalink.player_manager.create(inter.guild.id)
 
     voice_client = inter.guild.voice_client
@@ -19,9 +22,9 @@ async def create_player(inter: disnake.ApplicationCommandInteraction, should_con
     if voice_client is None:
         if not should_connect:
             raise commands.CommandInvokeError('I\'m not playing music.')
-    
+
         permissions = voice_channel.permissions_for(inter.me)
-        
+
         if not permissions.connect or not permissions.speak:
             raise commands.CommandInvokeError('I need the \'CONNECT\' and \'SPEAK\' permissons.')
 
@@ -30,15 +33,16 @@ async def create_player(inter: disnake.ApplicationCommandInteraction, should_con
                 raise commands.CommandInvokeError('Your voice channel is full.')
 
         player.store('channel', inter.channel.id)
-        await inter.author.voice.channel.connect(cls=StanVoiceClient) 
+        await inter.author.voice.channel.connect(cls=StanVoiceClient)
     elif voice_client.channel.id != voice_channel.id:
         raise commands.CommandInvokeError('You need to be in my voice channel.')
 
     return player
 
-def attach_track_metadata(track: lavalink.AudioTrack, inter: disnake.ApplicationCommandInteraction) -> lavalink.AudioTrack:
-    data = {
-            'requester_name': inter.author.display_name,
-            'requester_avatar_url': inter.author.display_avatar.url
-            }
-    return lavalink.AudioTrack(track, track.requester, requester_name=inter.author.display_name, requester_avatar_url=inter.author.display_avatar.url)
+
+def attach_track_media_info(track: lavalink.AudioTrack,
+                            media_info: MediaInfo) -> lavalink.AudioTrack:
+
+    return lavalink.AudioTrack(track,
+                               track.requester,
+                               media_info=media_info)

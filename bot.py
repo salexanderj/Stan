@@ -20,7 +20,7 @@ class Stan(commands.Bot):
         self._initialized = False
 
     async def on_ready(self) -> None:
-        
+
         if not self._initialized:
             self._initialized = True
 
