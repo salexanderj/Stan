@@ -78,14 +78,14 @@ class Bard(commands.Cog):
         if validators.url(query) and 'youtube' not in query and 'youtu.be' not in query:
             downloader = YTDownloader(MediaType.AUDIO)
 
+        print(f"USING {downloader.__class__.__name__.upper()}")
+
         media_infos = await downloader.extract_media_info(query,
                                                           requester_name=inter.author.display_name,
                                                           requester_avatar_url=inter.author.display_avatar.url)
         if len(media_infos) < 1:
             await inter.send("I couldn't find any tracks for that query.", delete_after=6)
             return
-
-        print(f"USING {downloader.__class__.__name__.upper()}")
 
         for media_info in media_infos:
             lavalink_result = await player.node.get_tracks(media_info.media_url)
