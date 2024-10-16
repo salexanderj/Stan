@@ -74,9 +74,9 @@ class Bard(commands.Cog):
 
         await inter.response.defer()
 
-        downloader = OtherDownloader(MediaType.AUDIO)
+        downloader = YTDownloader(MediaType.AUDIO)
         if validators.url(query) and 'youtube' not in query and 'youtu.be' not in query:
-            downloader = YTDownloader(MediaType.AUDIO)
+            downloader = OtherDownloader(MediaType.AUDIO)
 
         print(f"USING {downloader.__class__.__name__.upper()}")
 
