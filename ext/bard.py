@@ -85,6 +85,8 @@ class Bard(commands.Cog):
             await inter.send("I couldn't find any tracks for that query.", delete_after=6)
             return
 
+        print(f"USING {downloader.__class__.__name__.upper()}")
+
         for media_info in media_infos:
             lavalink_result = await player.node.get_tracks(media_info.media_url)
             track = lavalink_result.tracks[0]
