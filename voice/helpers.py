@@ -3,7 +3,6 @@ from disnake.ext import commands
 import lavalink
 
 from voice.voice_client import StanVoiceClient
-from downloads.media_info import MediaInfo
 
 
 async def create_player(inter: disnake.ApplicationCommandInteraction,
@@ -38,11 +37,3 @@ async def create_player(inter: disnake.ApplicationCommandInteraction,
         raise commands.CommandInvokeError('You need to be in my voice channel.')
 
     return player
-
-
-def attach_track_media_info(track: lavalink.AudioTrack,
-                            media_info: MediaInfo) -> lavalink.AudioTrack:
-
-    return lavalink.AudioTrack(track,
-                               track.requester,
-                               media_info=media_info)

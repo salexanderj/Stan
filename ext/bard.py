@@ -2,15 +2,12 @@ import disnake
 from disnake.ext import commands
 import lavalink
 from lavalink.events import TrackStartEvent, QueueEndEvent
-import validators
 
 from bot import Stan
 from config import LAVALINK_PASSWORD
 from voice.player import StanPlayer
-from voice.helpers import create_player, attach_track_media_info
-from downloads.media_type import MediaType
-from downloads.yt_downloader import YTDownloader
-from downloads.other_downloader import OtherDownloader
+from voice.helpers import create_player
+from downloads.helpers import extract_tracks
 
 
 class Bard(commands.Cog):
@@ -74,26 +71,60 @@ class Bard(commands.Cog):
 
         await inter.response.defer()
 
-        downloader = YTDownloader(MediaType.AUDIO)
-        if validators.url(query) and 'youtube' not in query and 'youtu.be' not in query:
-            downloader = OtherDownloader(MediaType.AUDIO)
+        tracks = await extract_tracks(query,
+                                      player,
+                                      inter.author.display_name,
+                                      inter.author.display_avatar.url)
 
-        print(f"USING {downloader.__class__.__name__.upper()}")
-
-        media_infos = await downloader.extract_media_info(query,
-                                                          requester_name=inter.author.display_name,
-                                                          requester_avatar_url=inter.author.display_avatar.url)
-        if len(media_infos) < 1:
+        if len(tracks) < 1:
             await inter.send("I couldn't find any tracks for that query.", delete_after=6)
             return
 
-        for media_info in media_infos:
-            lavalink_result = await player.node.get_tracks(media_info.media_url)
-            track = lavalink_result.tracks[0]
-            track_with_media_info = attach_track_media_info(track, media_info)
-            player.add(track=track_with_media_info, requester=inter.author.id)
+        for track in tracks:
+            player.add(track, inter.author.id)
 
         if not player.is_playing and not deferred_start:
+            await player.play()
+
+        await player.send_or_update_embed_message(inter)
+        await inter.delete_original_response()
+
+    @commands.message_command(
+            name="play selected",
+            description="Command Stan to play audio from embeds or files in the selected message.",
+            dm_permission=False
+            )
+    async def play_selected(self,
+                            inter: disnake.ApplicationCommandInteraction,
+                            ) -> None:
+        await inter.response.defer()
+
+        message = inter.target
+
+        urls = []
+        for attachment in message.attachments:
+            if "video" in attachment.content_type or "audio" in attachment.content_type:
+                urls.append(attachment.url)
+        for embed in message.embeds:
+            if embed.video.url is not None:
+                urls.append(embed.video.url)
+
+        if len(urls) < 1:
+            await inter.send("No media found in the selected message.", delete_after=6)
+            return
+
+        player = await create_player(inter, True)
+
+        for url in urls:
+            tracks = await extract_tracks(url,
+                                          player,
+                                          inter.author.display_name,
+                                          inter.author.display_avatar.url)
+
+        for track in tracks:
+            player.add(track, inter.author.id)
+
+        if not player.is_playing:
             await player.play()
 
         await player.send_or_update_embed_message(inter)
