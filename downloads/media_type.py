@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class DownloadType(Enum):
+class MediaType(Enum):
     VIDEO = 'b'
     AUDIO = 'ba'
     RADIO = 'ba*'

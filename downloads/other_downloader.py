@@ -1,9 +1,10 @@
 from downloads.downloader import Downloader
-from downloads.download_type import DownloadType
-    
+from downloads.media_type import MediaType
+
+
 class OtherDownloader(Downloader):
-     
-    def get_options(self, download_type: DownloadType):
+
+    def get_options(self, download_type: MediaType):
 
         options_other = {
             'format': download_type.value,

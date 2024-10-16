@@ -7,7 +7,7 @@ from disnake.ext import commands
 
 from bot import Stan
 from downloads.downloader import Downloader
-from downloads.download_type import DownloadType
+from downloads.media_type import MediaType
 
 
 class Ripper(commands.Cog):
@@ -26,7 +26,7 @@ class Ripper(commands.Cog):
         await inter.response.defer()
 
         loop = asyncio.get_event_loop()
-        downloader = Downloader(download_type=DownloadType.AUDIO)
+        downloader = Downloader(download_type=MediaType.AUDIO)
         infos = await downloader.extract_media_info(url)
         info = infos[0]
 
