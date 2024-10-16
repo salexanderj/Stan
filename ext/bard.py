@@ -2,6 +2,7 @@ import disnake
 from disnake.ext import commands
 import lavalink
 from lavalink.events import TrackStartEvent, QueueEndEvent
+from typing import Optional
 
 from bot import Stan
 from config import LAVALINK_PASSWORD
@@ -236,37 +237,59 @@ class Bard(commands.Cog):
         pass
 
     @filter.sub_command(
-            description="Sets the speed, pitch, and playback rate of the current player."
+            description="Sets the playback rate of the current player."
             )
-    async def timescale(self,
-                        inter: disnake.ApplicationCommandInteraction,
-                        speed: float = commands.Param(
-                            default=1.0,
-                            le=10.0,
-                            ge=0.1,
-                            description="Speed of playback (preserves pitch.)"),
-                        pitch: float = commands.Param(
-                            default=1.0,
-                            le=10.0,
-                            ge=0.1,
-                            description="Pitch of playback."),
-                        rate: float = commands.Param(
-                            default=1.0,
-                            le=10.0,
-                            ge=0.1,
-                            description="Rate of playback (does not preserve pitch.)")
-                        ) -> None:
+    async def rate(self,
+                   inter: disnake.ApplicationCommandInteraction,
+                   rate: float = commands.Param(
+                        le=10.0,
+                        ge=0.1,
+                        description="Rate of playback."),
+                   ) -> None:
         player = await create_player(inter, False)
 
         await inter.response.defer()
 
-        filter = lavalink.filters.Timescale(speed=speed, pitch=pitch, rate=rate)
+        existing_filter = player.get_filter('timescale')
+        existing_pitch: Optional[float] = None
+        if existing_filter:
+            existing_pitch = existing_filter.values['pitch']
 
-        await player.set_filter(filter)
+        await player.update_filter(lavalink.filters.Timescale, rate=rate)
 
-        message = (f"Applying timescale filter with speed set to {speed}x, "
-                   f"pitch set to {pitch}x, "
-                   f"and rate set to {rate}x...")
+        message = f"Applying timescale filter with pitch multiplier set to {rate}x"
+        if existing_filter:
+            message += f", carrying over existing rate multiplier of {existing_pitch}x..."
+        else:
+            message += "..."
+        await inter.send(message, delete_after=8)
+
+    @filter.sub_command(
+            description="Sets the playback rate of the current player."
+            )
+    async def pitch(self,
+                    inter: disnake.ApplicationCommandInteraction,
+                    pitch: float = commands.Param(
+                        le=10.0,
+                        ge=0.1,
+                        description="Pitch of playback."),
+                    ) -> None:
+        player = await create_player(inter, False)
+
+        await inter.response.defer()
+
+        existing_filter = player.get_filter('timescale')
+        existing_rate: Optional[float] = None
+        if existing_filter:
+            existing_rate = existing_filter.values['rate']
+
+        await player.update_filter(lavalink.filters.Timescale, pitch=pitch)
+
+        message = f"Applying timescale filter with pitch set to {pitch}x"
+        if existing_filter:
+            message += f", carrying over existing rate multiplier of {existing_rate}x..."
+        else:
+            message += "..."
         await inter.send(message, delete_after=8)
 
     @filter.sub_command(
