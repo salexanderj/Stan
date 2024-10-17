@@ -9,6 +9,13 @@ lavalink/Lavalink.jar
 lavalink/plugins
 lavalink/logs
 
+# PM2
+package-lock.json
+package.json
+
+# vim swap files
+*.swp
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
