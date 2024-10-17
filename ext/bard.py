@@ -257,9 +257,9 @@ class Bard(commands.Cog):
 
         await player.update_filter(lavalink.filters.Timescale, rate=rate)
 
-        message = f"Applying timescale filter with pitch multiplier set to {rate}x"
+        message = f"Applying timescale filter with rate multiplier set to {rate}x"
         if existing_filter:
-            message += f", carrying over existing rate multiplier of {existing_pitch}x..."
+            message += f", carrying over existing pitch multiplier of {existing_pitch}x..."
         else:
             message += "..."
         await inter.send(message, delete_after=8)
@@ -297,30 +297,31 @@ class Bard(commands.Cog):
             )
     async def distortion(self,
                          inter: disnake.ApplicationCommandInteraction,
-                         sin_offset: float = commands.Param(default=0.0),
-                         sin_scale: float = commands.Param(default=1.0),
-                         cos_offset: float = commands.Param(default=0.0),
-                         cos_scale: float = commands.Param(default=1.0),
-                         tan_offset: float = commands.Param(default=0.0),
-                         tan_scale: float = commands.Param(default=1.0),
-                         offset: float = commands.Param(default=0.0),
-                         scale: float = commands.Param(default=1.0)
+                         option: int = commands.Param(
+                             description="The distortion setting to be used.",
+                             choices={
+                                 'Light': 0,
+                                 'Medium': 1,
+                                 'Heavy': 2,
+                                 'Extreme (Loud)': 3
+                                 }
+                             )
                          ) -> None:
         player = await create_player(inter, False)
 
         await inter.response.defer()
 
-        filter = lavalink.filters.Distortion(sin_offset,
-                                             sin_scale,
-                                             cos_offset,
-                                             cos_scale,
-                                             tan_offset,
-                                             tan_scale,
-                                             offset,
-                                             scale)
+        options = {
+                0: [0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.5, 1.0],
+                1: [0.5, 1.0, 0.5, 1.0, 0.1, 1.7, 0.5, 1.0],
+                2: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.1, 1.0],
+                3: [1.0, 10.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.25]
+        }
+
+        filter = lavalink.filters.Distortion(*options[option])
         await player.set_filter(filter)
 
-        await inter.send("Applying a distortion filter with provided arguments...", delete_after=8)
+        await inter.send("Applying distortion filter...", delete_after=8)
 
     @filter.sub_command(
             description="Phases the audio between the right and left channels in the current player."
