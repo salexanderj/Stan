@@ -2,6 +2,7 @@ import asyncio
 from bot import Stan
 from config import TOKEN
 
+
 async def main() -> None:
     stan = Stan()
     await stan.login(TOKEN)

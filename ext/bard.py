@@ -16,15 +16,18 @@ class Bard(commands.Cog):
         self.bot = bot
 
         if not hasattr(self.bot, 'lavalink'):
-            self.bot.lavalink = lavalink.Client(
-                    self.bot.user.id,
-                    player=StanPlayer)
-            self.bot.lavalink.add_node(host='localhost',
-                                       port=2333,
-                                       password=LAVALINK_PASSWORD,
-                                       region='us',
-                                       name='default-node')
+            self.register_lavalink()
         self.bot.lavalink.add_event_hooks(self)
+
+    def register_lavalink(self):
+        self.bot.lavalink = lavalink.Client(
+                self.bot.user.id,
+                player=StanPlayer)
+        self.bot.lavalink.add_node(host='localhost',
+                                   port=2333,
+                                   password=LAVALINK_PASSWORD,
+                                   region='us',
+                                   name='default-node')
 
     def cog_unload(self) -> None:
         self.bot.lavalink._event_hooks.clear()
